@@ -14,3 +14,6 @@ uwp-diag.txt
 *.log
 Thumbs.db
 .DS_Store
+
+# local release archives
+release/
