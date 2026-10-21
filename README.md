@@ -4,15 +4,20 @@
 
 ## 下载
 
-- 直接可运行的单文件：`UwpManager.exe`（24.6 MB，内含 WinRT 投影，需 .NET 10 桌面运行时）
-- 压缩发布包：`UwpManager-1.0.0-win-x64.zip`（约 6.2 MB）
+最新版 **v1.1.0**：<https://github.com/SYSTEM-WinLogon/uwp-manager/releases/tag/v1.1.0>
+
+| 系统 | 文件 | 大小 |
+| --- | --- | --- |
+| 64 位 Windows | `UwpManager-1.1.0-win-x64.zip` | 47.6 MB |
+| 32 位 Windows | `UwpManager-1.1.0-win-x86.zip` | 44.7 MB |
+| Windows on ARM | `UwpManager-1.1.0-win-arm64.zip` | 45.8 MB |
+
+每个包里只有一个 `UwpManager.exe`，解压到任意普通文件夹双击即用，**不需要安装 .NET 运行时**（自包含）。
 
 > 仓库只存源码，编译产物不放 git；二进制通过 [Releases](https://github.com/SYSTEM-WinLogon/uwp-manager/releases) 分发。
-
-下载：**[最新版本 v1.0.0](https://github.com/SYSTEM-WinLogon/uwp-manager/releases/tag/v1.0.0)**
 ## 单文件便携版
 
-**`dist\UwpManager.exe` 就是全部** —— 一个 24.6 MB 的 exe，绿色免安装，双击即用，不写注册表、不建快捷方式、不留文件（除运行日志外）。
+**一个 exe 就是全部** —— 绿色免安装，双击即用，不写注册表、不建快捷方式、不留文件（除运行日志外）。
 
 - 启动时自动请求管理员权限（卸载 / 安装 UWP 需要）
 - 自带应用图标，任务栏、Alt+Tab、资源管理器都正常显示
@@ -20,10 +25,9 @@
 
 ### 运行环境
 
-需要**已安装 .NET 10 桌面运行时**（本机已具备，`dotnet --list-runtimes` 中可见 `Microsoft.WindowsDesktop.App 10.x`）。
-如果拷到没装的电脑，系统会弹窗提示并给出下载链接（.NET 10 Desktop Runtime，x64）。
-
-> 需要“完全免运行时”的版本也可以用一条命令自制，见文末「构建」。
+- Windows 10 2004 (10.0.19041) 及以上 / Windows 11
+- 发布包为**自包含单文件**（内置 .NET 运行时），目标机器无需安装 .NET
+- 首次启动会调用管理员权限（卸载 / 安装需要）
 
 ## 功能
 
@@ -92,20 +96,24 @@ tools/testpkg/           自建测试 UWP 包（验证安装/卸载，可安全�
 tools/SmokeTest/         无界面冒烟测试（直接调用 AppxService）
 ```
 
-### 单文件便携版（当前产物）
+### 三种架构（自包含单文件）
 
 ```powershell
-dotnet publish src/UwpManager/UwpManager.csproj -c Release -r win-x64 `
-  --self-contained false -p:PublishSingleFile=true -o build/publish
-# 产物：build/publish/UwpManager.exe（约 24.6 MB，需 .NET 10 桌面运行时）
+foreach ($rid in 'win-x64','win-x86','win-arm64') {
+  dotnet publish src/UwpManager/UwpManager.csproj -c Release -r $rid `
+    --self-contained true -p:PublishSingleFile=true `
+    -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
+    -o "build/$rid"
+}
+# 产物：build/<rid>/UwpManager.exe（x64 53.2 MB / x86 49.7 MB / arm64 52.0 MB）
 ```
 
-### 完全自包含（免 .NET 运行时，约 53 MB）
+### 框架依赖版（体积小，需 .NET 10 桌面运行时）
 
 ```powershell
 dotnet publish src/UwpManager/UwpManager.csproj -c Release -r win-x64 `
-  --self-contained true -p:PublishSingleFile=true `
-  -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o build/publish-sc
+  --self-contained false -p:PublishSingleFile=true -o build/publish-fd
+# 产物：约 24.6 MB
 ```
 
 > 注意：完全自包含的单文件版本在本工作区目录内**无法启动**（系统拦截了运行时解包），

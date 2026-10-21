@@ -27,6 +27,13 @@ public sealed class MainForm : FluentWindow
     private readonly ToggleSwitch _themeSwitch = new();
 
     private readonly System.Windows.Forms.Timer _toastTimer = new() { Interval = 2800 };
+    private static readonly string VersionText = BuildVersionText();
+
+    private static string BuildVersionText()
+    {
+        var v = typeof(MainForm).Assembly.GetName().Version ?? new Version(1, 0);
+        return $"v{ v.Major}.{ v.Minor}.{ v.Build}";
+    }
 
     private List<AppPackage> _all = new();
     private Bitmap _logo;
@@ -367,7 +374,7 @@ public sealed class MainForm : FluentWindow
         Theme.DrawText(g, label, Theme.Tiny, Theme.Accent,
             new Rectangle(_adminPillRect.X + U(28), _adminPillRect.Y, size.Width + U(6), _adminPillRect.Height));
 
-        Theme.DrawText(g, "v1.0.0  ·  Windows 10 / 11", Theme.Tiny, Theme.Text3, new Rectangle(U(20), h - U(34), U(220), U(18)));
+        Theme.DrawText(g, VersionText + "  ·  Windows 10 / 11", Theme.Tiny, Theme.Text3, new Rectangle(U(20), h - U(34), U(220), U(18)));
     }
 
     private void DrawHeader(Graphics g, int sidebar)
