@@ -7,7 +7,9 @@
 - 直接可运行的单文件：`UwpManager.exe`（24.6 MB，内含 WinRT 投影，需 .NET 10 桌面运行时）
 - 压缩发布包：`UwpManager-1.0.0-win-x64.zip`（约 6.2 MB）
 
-> 仓库只存源码，编译产物不放 git；二进制通过 GitHub Releases 分发。
+> 仓库只存源码，编译产物不放 git；二进制通过 [Releases](https://github.com/SYSTEM-WinLogon/uwp-manager/releases) 分发。
+
+下载：**[最新版本 v1.0.0](https://github.com/SYSTEM-WinLogon/uwp-manager/releases/tag/v1.0.0)**
 ## 单文件便携版
 
 **`dist\UwpManager.exe` 就是全部** —— 一个 24.6 MB 的 exe，绿色免安装，双击即用，不写注册表、不建快捷方式、不留文件（除运行日志外）。
