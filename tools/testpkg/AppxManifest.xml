@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+
+  <Identity Name="UwpManager.SmokeTest"
+            Publisher="CN=UwpManagerTest"
+            Version="1.0.0.0"
+            ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>UwpManager 测试应用</DisplayName>
+    <PublisherDisplayName>UwpManager Test</PublisherDisplayName>
+    <Logo>Assets\logo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="zh-CN" />
+  </Resources>
+
+  <Applications>
+    <Application Id="App" Executable="TestApp.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="UwpManager 测试应用"
+                          Description="仅用于验证安装与卸载流程，可随时删除"
+                          BackgroundColor="transparent"
+                          Square150x150Logo="Assets\logo.png"
+                          Square44x44Logo="Assets\logo.png" />
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>
