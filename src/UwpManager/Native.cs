@@ -9,6 +9,10 @@ internal static class Native
     public const int WM_NCHITTEST = 0x0084;
     public const int WM_GETMINMAXINFO = 0x0024;
     public const int WM_ERASEBKGND = 0x0014;
+    public const int WM_SIZE = 0x0005;
+    public const int SIZE_MAXIMIZED = 2;
+    public const uint SWP_NOZORDER = 0x0004;
+    public const uint SWP_NOACTIVATE = 0x0010;
 
     public const int HTCAPTION = 2;
     public const int HTCLIENT = 1;
@@ -66,6 +70,9 @@ internal static class Native
 
     [DllImport("user32.dll")]
     public static extern bool ReleaseCapture();
+
+    [DllImport("user32.dll")]
+    public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint flags);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);

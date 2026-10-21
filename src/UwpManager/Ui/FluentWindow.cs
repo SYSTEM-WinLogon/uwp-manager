@@ -54,6 +54,14 @@ public class FluentWindow : Form
         base.OnHandleCreated(e);
         Native.SetRoundedCorners(Handle, true);
         Native.SetDarkTitleBar(Handle, Theme.Dark);
+        ApplyMaximizedBounds();
+    }
+
+    /// <summary>最大化时正好贴合工作区（否则无边框窗口的不可见边框会把内容顶到屏幕外）。</summary>
+    private void ApplyMaximizedBounds()
+    {
+        if (!IsHandleCreated) return;
+        try { MaximizedBounds = Screen.FromHandle(Handle).WorkingArea; } catch { }
     }
 
     private void HandleThemeChanged()
@@ -74,16 +82,27 @@ public class FluentWindow : Form
                 {
                     if (WindowState == FormWindowState.Maximized)
                     {
+                        // 最大化时窗口比工作区多出不可见边框，这里按边框厚度收回来，
+                        // 且只在窗口确实覆盖满工作区时才调整（避免“还原”瞬间误判导致客户区过大）
                         var monitor = Native.MonitorFromWindow(Handle, 2);
                         var info = new Native.MONITORINFO { cbSize = Marshal.SizeOf<Native.MONITORINFO>() };
+                        var rc = Marshal.PtrToStructure<Native.RECT>(m.LParam);
+
                         if (Native.GetMonitorInfo(monitor, ref info))
                         {
-                            var rc = Marshal.PtrToStructure<Native.RECT>(m.LParam);
-                            rc.Left = info.rcWork.Left;
-                            rc.Top = info.rcWork.Top;
-                            rc.Right = info.rcWork.Right;
-                            rc.Bottom = info.rcWork.Bottom;
-                            Marshal.StructureToPtr(rc, m.LParam, false);
+                            int frame = Native.GetSystemMetrics(Native.SM_CXSIZEFRAME) +
+                                        Native.GetSystemMetrics(Native.SM_CXPADDEDBORDER);
+
+                            // 仅当窗口尺寸已经覆盖满工作区时，才把客户区对齐到工作区；
+                            // “还原”那一瞬间窗口还没缩回，尺寸不满足条件，因此不会误判
+                            if (rc.Width >= info.rcWork.Width - 2 && rc.Height >= info.rcWork.Height - frame * 2)
+                            {
+                                rc.Left = info.rcWork.Left;
+                                rc.Top = info.rcWork.Top;
+                                rc.Right = info.rcWork.Right;
+                                rc.Bottom = info.rcWork.Bottom;
+                                Marshal.StructureToPtr(rc, m.LParam, false);
+                            }
                         }
                     }
                     m.Result = IntPtr.Zero;
@@ -95,9 +114,12 @@ public class FluentWindow : Form
                 if (HandleHitTest(ref m)) return;
                 break;
 
-            case Native.WM_GETMINMAXINFO:
-                if (WindowState == FormWindowState.Maximized) AdjustMaximizedBounds(ref m);
-                break;
+            case Native.WM_SIZE:
+                base.WndProc(ref m);
+                // 最大化 / 还原后强制重排并整窗重绘，避免残留旧尺寸的布局
+                LayoutNow();
+                Invalidate(true);
+                return;
 
             case Native.WM_ERASEBKGND:
                 m.Result = (IntPtr)1;
@@ -105,6 +127,7 @@ public class FluentWindow : Form
         }
         base.WndProc(ref m);
     }
+
 
     private bool HandleHitTest(ref Message m)
     {
@@ -140,30 +163,7 @@ public class FluentWindow : Form
         return false;
     }
 
-    private static void AdjustMaximizedBounds(ref Message m)
-    {
-        // 保持最大化时贴合工作区，避免无边框窗口溢出屏幕
-        var mmi = Marshal.PtrToStructure<MINMAXINFO>(m.LParam);
-        var screen = Screen.FromHandle(m.HWnd);
-        var wa = screen.WorkingArea;
-        var bounds = screen.Bounds;
-        mmi.ptMaxPosition.X = wa.X - bounds.X;
-        mmi.ptMaxPosition.Y = wa.Y - bounds.Y;
-        mmi.ptMaxSize.X = wa.Width;
-        mmi.ptMaxSize.Y = wa.Height;
-        Marshal.StructureToPtr(mmi, m.LParam, false);
-        m.Result = IntPtr.Zero;
-    }
 
-    [StructLayout(LayoutKind.Sequential)]
-    private struct MINMAXINFO
-    {
-        public Native.POINT ptReserved;
-        public Native.POINT ptMaxSize;
-        public Native.POINT ptMaxPosition;
-        public Native.POINT ptMinTrackSize;
-        public Native.POINT ptMaxTrackSize;
-    }
 
     protected override void OnDpiChanged(DpiChangedEventArgs e)
     {
